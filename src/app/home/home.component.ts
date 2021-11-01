@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { trigger,style,transition,animate,keyframes,query,stagger } from '@angular/animations';
 import { DataService } from '../data.service';
+import { GraphqlProductsService } from '../graphql.products.service';
+import { Subscription } from 'rxjs';
+import { GraphqlUsersService} from '../graphql.users.service';
 
 @Component({
   selector: 'app-home',
@@ -32,14 +35,45 @@ import { DataService } from '../data.service';
 export class HomeComponent implements OnInit {
 
   itemCount: number = 4;
-  btnText: String = 'Add an item';
-  goalText: String = 'My first life goal'
-  goals: Array<String> = [];
+  btnText: string = 'Add an item';
+  goalText: string = 'My first life goal'
+  goals: Array<string> = [];
+  user: string = "";
+  pass: string = "";
+  token: string = "";
 
-  constructor(private _data: DataService) { }
+  loading: boolean = false;
+  private querySubscription: Subscription;
+
+  constructor(
+    private _data: DataService,
+    private graphqlProductsService: GraphqlProductsService,
+    private graphqlUsersService : GraphqlUsersService
+  ) { 
+  }
 
   ngOnInit(): void {
     this._data.goal.subscribe(res => this.goals = res);
+    this.itemCount = this.goals.length;
+    this._data.changeGoal(this.goals)
+    this.querySubscription = this.graphqlProductsService.links("-")
+      .valueChanges
+      .subscribe(({ data, loading }) => {
+        this.loading = loading;
+        //this.goals = JSON.parse(JSON.stringify(data)).links;
+        var jsonData = JSON.stringify(data);
+        var jsonLinks = JSON.parse(jsonData).links;
+        var stringLinks = JSON.stringify(jsonLinks);
+        console.log(jsonLinks);
+        for (var count in jsonLinks) {
+          this.addItemFromJson(jsonLinks[count].description);
+          console.log(jsonLinks[count].description);
+        }
+      });
+  }
+
+  private addItemFromJson(urlString: string): void {
+    this.goals.push(urlString);
     this.itemCount = this.goals.length;
     this._data.changeGoal(this.goals)
   }
@@ -55,5 +89,43 @@ export class HomeComponent implements OnInit {
     this.goals.splice(i, 1);
     this.itemCount = this.goals.length;
     this._data.changeGoal(this.goals)
+  }
+
+  loginUser() {
+    alert(this.user + " - " + this.pass);
+    this.graphqlUsersService.tokenAuth(this.user, this.pass)
+    .subscribe(({ data }) => {
+       console.log('logged: ', JSON.stringify(data));
+      // this.storageService.setSession("token", JSON.parse(JSON.stringify(data)).tokenAuth.token);
+      //this.storageService.setLocal("token", JSON.parse(JSON.stringify(data)).tokenAuth.token);
+      this.token =  JSON.parse(JSON.stringify(data)).tokenAuth.token;
+      
+
+      //this.loginService.showData(mydata);
+      // this.router.navigate(['/']);
+
+    }, (error) => {
+       console.log('there was an error sending the query', error);
+    });
+  
+  }  
+
+  addItemTest() {
+
+
+    //var mytoken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imh1Z28iLCJleHAiOjE2MzU3NDUxODUsIm9yaWdJYXQiOjE2MzU3NDQ4ODV9.xv1uWhq-0tbz8my3pGkl9qwk-vOxGRHRHNKle6lJOB4";
+    //this.storageService.getSession("token");
+    alert(this.goalText);
+
+    this.graphqlProductsService.createLink(this.token, "https://www.github.com", this.goalText)
+    .subscribe(({ data }) => {
+       console.log('link created :  ', data);
+      this.goals.push(this.goalText);
+      this.goalText = '';
+      this.itemCount = this.goals.length;
+      this._data.changeGoal(this.goals)
+    }, (error) => {
+       console.log('there was an error sending the query', error);
+    });
   }
 }
