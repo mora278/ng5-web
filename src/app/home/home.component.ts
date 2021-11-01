@@ -66,7 +66,7 @@ export class HomeComponent implements OnInit {
         var stringLinks = JSON.stringify(jsonLinks);
         console.log(jsonLinks);
         for (var count in jsonLinks) {
-          this.addItemFromJson(jsonLinks[count].url);
+          this.addItemFromJson(jsonLinks[count].description);
           console.log(jsonLinks[count].description);
         }
       });
@@ -111,16 +111,19 @@ export class HomeComponent implements OnInit {
   }  
 
   addItemTest() {
-  //    this.goals.push(this.goalText);
 
 
-    var mytoken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imh1Z28iLCJleHAiOjE2MzU3NDUxODUsIm9yaWdJYXQiOjE2MzU3NDQ4ODV9.xv1uWhq-0tbz8my3pGkl9qwk-vOxGRHRHNKle6lJOB4";
+    //var mytoken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imh1Z28iLCJleHAiOjE2MzU3NDUxODUsIm9yaWdJYXQiOjE2MzU3NDQ4ODV9.xv1uWhq-0tbz8my3pGkl9qwk-vOxGRHRHNKle6lJOB4";
     //this.storageService.getSession("token");
     alert(this.goalText);
 
-    this.graphqlProductsService.createLink(mytoken, "https://www.github.com", this.goalText)
+    this.graphqlProductsService.createLink(this.token, "https://www.github.com", this.goalText)
     .subscribe(({ data }) => {
        console.log('link created :  ', data);
+      this.goals.push(this.goalText);
+      this.goalText = '';
+      this.itemCount = this.goals.length;
+      this._data.changeGoal(this.goals)
     }, (error) => {
        console.log('there was an error sending the query', error);
     });
