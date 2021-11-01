@@ -3,6 +3,14 @@
         <p>Addd a bucket list item</p>
     </div>
     <div class="col">
+        <div class="col">
+            <form>
+                <input type="text" class="txt1" name="item" placeholder="user" [(ngModel)]= "user">
+                <input type="password" class="txt1" name="item" placeholder="pass" [(ngModel)]= "pass">
+                <input type="submit" class="btn1" value="login" (click)="loginUser()">
+            </form>
+            {{ token }}
+        </div>
         <p>Your bucket list ({{ itemCount }})</p>
     </div>
 </div>
